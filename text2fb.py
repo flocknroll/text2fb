@@ -33,15 +33,23 @@ def rgb24_to_rgb16(bmp):
 
     return outBuffer
 
+
 def np_rgb24_to_rgb16(bmp):
     bBuffer = memoryview(bmp)
-    na = np.array(bBuffer, dtype="i")
-    na = na.reshape((oRes[0] * oRes[1], 3))
-    np.right_shift(na, [3, 2, 3], out=na)
-    np.left_shift(na, [11, 5, 0], out=na)
-    na = np.array(map(lambda px: (px[0] + px[1] + px[2]).tobytes(), na.astype('ushort')))
+    na = np.array(bBuffer, dtype="i").reshape((oRes[0] * oRes[1], 3))
+    arrays = np.hsplit(na, 3)
+    r = arrays[0]
+    g = arrays[1]
+    b = arrays[2]
+    np.right_shift(r, 3, out=r)
+    np.left_shift(r, 11, out=r)
+    np.right_shift(g, 2, out=g)
+    np.left_shift(g, 5, out=g)
+    np.right_shift(b, 3, out=b)
 
-    return bytearray(na.flatten())
+    na = r.astype("ushort") + g.astype("ushort") + b.astype("ushort")
+
+    return na.tobytes()
 
 
 def text_to_fb(text):
@@ -58,7 +66,7 @@ def text_to_fb(text):
 
     im = im.resize(oRes, Image.NEAREST)
 
-    fbBuffer = rgb24_to_rgb16(im.tobytes())
+    fbBuffer = np_rgb24_to_rgb16(im.tobytes())
 
     with open("/dev/fb1", "wb") as fb:
         fb.write(fbBuffer)
