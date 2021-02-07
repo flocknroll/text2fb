@@ -36,7 +36,7 @@ def rgb24_to_rgb16(bmp):
 
 def np_rgb24_to_rgb16(bmp):
     bBuffer = memoryview(bmp)
-    na = np.array(bBuffer, dtype="i").reshape((oRes[0] * oRes[1], 3))
+    na = np.array(bBuffer, dtype="uint16").reshape((oRes[0] * oRes[1], 3))
     arrays = np.hsplit(na, 3)
     r = arrays[0]
     g = arrays[1]
@@ -47,7 +47,7 @@ def np_rgb24_to_rgb16(bmp):
     np.left_shift(g, 5, out=g)
     np.right_shift(b, 3, out=b)
 
-    na = r.astype("ushort") + g.astype("ushort") + b.astype("ushort")
+    na = r + g + b
 
     return na.tobytes()
 
