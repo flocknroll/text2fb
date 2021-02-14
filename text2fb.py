@@ -36,20 +36,19 @@ def rgb24_to_rgb16(bmp):
 
 def np_rgb24_to_rgb16(bmp):
     bBuffer = memoryview(bmp)
-    na = np.array(bBuffer, dtype="uint16").reshape((oRes[0] * oRes[1], 3))
+    na = np.array(bBuffer, dtype="intc").reshape((oRes[0] * oRes[1], 3))
+
+    np.right_shift(na, [3, 2, 3], out=na)
+    np.left_shift(na, [11, 5, 0], out=na)
+
     arrays = np.hsplit(na, 3)
     r = arrays[0]
     g = arrays[1]
     b = arrays[2]
-    np.right_shift(r, 3, out=r)
-    np.left_shift(r, 11, out=r)
-    np.right_shift(g, 2, out=g)
-    np.left_shift(g, 5, out=g)
-    np.right_shift(b, 3, out=b)
 
     na = r + g + b
 
-    return na.tobytes()
+    return na.astype("uint16").tobytes()
 
 
 def text_to_fb(text):
