@@ -13,7 +13,7 @@ def px24_to_16(r, g, b):
     return ((r << 11) + (g << 5) + b).to_bytes(2, "little")
 
 def rgb24_to_rgb16(bmp):
-    bBuffer = memoryview(bmp)
+    bBuffer = memoryview(bmp.tobytes())
     outBuffer = bytearray(oRes[0] * oRes[1] * 2)
 
     for i in range(oRes[0] * oRes[1]):
@@ -35,18 +35,12 @@ def rgb24_to_rgb16(bmp):
 
 
 def np_rgb24_to_rgb16(bmp):
-    bBuffer = memoryview(bmp)
-    na = np.array(bBuffer, dtype="intc").reshape((oRes[0] * oRes[1], 3))
+    na = np.array(bmp, dtype="intc").reshape((oRes[0] * oRes[1], 3))
 
     np.right_shift(na, [3, 2, 3], out=na)
     np.left_shift(na, [11, 5, 0], out=na)
 
-    arrays = np.hsplit(na, 3)
-    r = arrays[0]
-    g = arrays[1]
-    b = arrays[2]
-
-    na = r + g + b
+    na = na[...,0] | na[...,1] | na[...,2]
 
     return na.astype("uint16").tobytes()
 
@@ -65,7 +59,7 @@ def text_to_fb(text):
 
     im = im.resize(oRes, Image.NEAREST)
 
-    fbBuffer = np_rgb24_to_rgb16(im.tobytes())
+    fbBuffer = np_rgb24_to_rgb16(im)
 
     with open("/dev/fb1", "wb") as fb:
         fb.write(fbBuffer)
